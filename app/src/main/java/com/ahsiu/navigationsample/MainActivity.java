@@ -2,13 +2,17 @@ package com.ahsiu.navigationsample;
 
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -20,11 +24,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 
+import com.ahsiu.navigationsample.epoxy.Vertical_Epoxy_ListPage;
+import com.ahsiu.navigationsample.recyclerview.Horizontal_ListPage;
+import com.ahsiu.navigationsample.recyclerview.Vertical_ListPage;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static com.ahsiu.navigationsample.R.id.bottomSheetHeading;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -37,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @BindView (R.id.viewpager) ViewPager mViewPager;
 
     private List<PageView> pageList;
+    BottomSheetBehavior mBottomSheetBehavior;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,13 +59,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_INDEFINITE)
-                        .setAction("Action", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-
-                            }
-                        }).show();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_INDEFINITE)
+//                        .setAction("Action", new View.OnClickListener() {
+//                            @Override
+//                            public void onClick(View view) {
+//
+//                            }
+//                        }).show();
+        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
 
@@ -67,22 +79,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         initData();
         initView();
+        initBottomSheet();
+        selectPage(1);
+    }
+
+    private void initBottomSheet(){
+        mBottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomSheetLayout));
+        mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
     }
 
     private void initData() {
         pageList = new ArrayList<>();
-        pageList.add(new PageOne(MainActivity.this));
-        pageList.add(new PageTwo(MainActivity.this));
-        pageList.add(new PageThree(MainActivity.this));
+        pageList.add(new Vertical_ListPage(MainActivity.this));
+        pageList.add(new Horizontal_ListPage(MainActivity.this));
+        pageList.add(new Vertical_Epoxy_ListPage(MainActivity.this));
     }
 
     private void initView() {
-        mTablayout.addTab(mTablayout.newTab().setText("Page one"));
-        mTablayout.addTab(mTablayout.newTab().setText("Page two"));
-        mTablayout.addTab(mTablayout.newTab().setText("Page three"));
+        mTablayout.addTab(mTablayout.newTab().setText("List_V"));
+        mTablayout.addTab(mTablayout.newTab().setText("List_H"));
+        mTablayout.addTab(mTablayout.newTab().setText("List_V_Epoxy"));
 
         mViewPager.setAdapter(new SamplePagerAdapter());
         initListener();
+    }
+
+    void selectPage(int pageIndex){
+        mTablayout.setScrollPosition(pageIndex,0f,true);
+        mViewPager.setCurrentItem(pageIndex);
     }
 
     private void initListener() {
@@ -141,9 +176,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (id == R.id.action_settings) {
             return true;
+
+        } else if (id == R.id.action_player){
+            openMusicPlayer();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openMusicPlayer(){
+        Intent intent = new Intent();
+        intent.setClass(MainActivity.this, MusicPlayer.class);
+        startActivity(intent);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
