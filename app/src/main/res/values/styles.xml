@@ -6,6 +6,8 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <!--<item name="android:dropDownListViewStyle">@style/customDropDownListViewStyle</item>-->
+        <!--<item name="android:dropDownItemStyle">@style/customDropDownItemStyle</item>-->
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -13,7 +15,15 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="customDropDownItemStyle" parent="Widget.AppCompat.DropDownItem.Spinner">
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="customDropDownListViewStyle" parent="Widget.AppCompat.ListView.DropDown">
+        <item name="android:background">@color/white</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"></style>
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 

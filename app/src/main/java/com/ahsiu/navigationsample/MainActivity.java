@@ -9,6 +9,8 @@ import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.SearchView;
@@ -23,9 +25,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Toast;
 
 import com.ahsiu.navigationsample.epoxy.Vertical_Epoxy_ListPage;
+import com.ahsiu.navigationsample.recyclerview.FragmentAdapter;
 import com.ahsiu.navigationsample.recyclerview.Horizontal_ListPage;
+import com.ahsiu.navigationsample.recyclerview.RecyclerViewFragment;
 import com.ahsiu.navigationsample.recyclerview.Vertical_ListPage;
 
 import java.util.ArrayList;
@@ -34,6 +42,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static android.support.v4.view.MenuItemCompat.setOnActionExpandListener;
 import static com.ahsiu.navigationsample.R.id.bottomSheetHeading;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -46,8 +55,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @BindView (R.id.tabs) TabLayout mTablayout;
     @BindView (R.id.viewpager) ViewPager mViewPager;
 
-    private List<PageView> pageList;
+    private List<Fragment> mFragmentList;
+
     BottomSheetBehavior mBottomSheetBehavior;
+
+    RecyclerViewFragment mRecyclerViewFragment;
+
+    SearchView mSearchView;
+    MenuItem mMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //
 //                            }
 //                        }).show();
+
         mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
@@ -100,18 +116,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void initData() {
-        pageList = new ArrayList<>();
-        pageList.add(new Vertical_ListPage(MainActivity.this));
-        pageList.add(new Horizontal_ListPage(MainActivity.this));
-        pageList.add(new Vertical_Epoxy_ListPage(MainActivity.this));
+        mFragmentList = new ArrayList<>();
+        mRecyclerViewFragment = new RecyclerViewFragment();
+        mFragmentList.add(mRecyclerViewFragment);
     }
 
     private void initView() {
-        mTablayout.addTab(mTablayout.newTab().setText("List_V"));
-        mTablayout.addTab(mTablayout.newTab().setText("List_H"));
-        mTablayout.addTab(mTablayout.newTab().setText("List_V_Epoxy"));
+        mTablayout.addTab(mTablayout.newTab().setText("RecyclerView"));
+        mViewPager.setAdapter(new FragmentAdapter(getSupportFragmentManager(), mFragmentList));
 
-        mViewPager.setAdapter(new SamplePagerAdapter());
         initListener();
     }
 
@@ -125,29 +138,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(mTablayout));
     }
 
-    private class SamplePagerAdapter extends PagerAdapter {
-
-        @Override
-        public int getCount() {
-            return pageList.size();
-        }
-
-        @Override
-        public boolean isViewFromObject(View view, Object o) {
-            return o == view;
-        }
-
-        @Override
-        public Object instantiateItem(ViewGroup container, int position) {
-            container.addView(pageList.get(position));
-            return pageList.get(position);
-        }
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            container.removeView((View) object);
-        }
-
-    }
 
     @Override
     public void onBackPressed() {
@@ -162,13 +152,57 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
 
+        mMenuItem = menu.findItem(R.id.search);
+
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
-        searchView.setMaxWidth(Integer.MAX_VALUE);
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+//        mSearchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        mSearchView = (SearchView) mMenuItem.getActionView();
+        mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        //設定 Search View Expand 的寬度
+        mSearchView.setMaxWidth(Integer.MAX_VALUE);
+        //顯示 執行Search 的按鈕
+        mSearchView.setSubmitButtonEnabled(false);
+        //監聽 Search View input or Submit 的行為
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Toast.makeText(MainActivity.this, "onQueryTextSubmit:" + query, Toast.LENGTH_SHORT).show();
+                mMenuItem.collapseActionView();
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                Toast.makeText(MainActivity.this, "onQueryTextChange:" + newText, Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
+
+        mSearchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionSelect(int position) {
+
+                return false;
+            }
+
+            @Override
+            public boolean onSuggestionClick(int position) {
+                return false;
+            }
+        });
+
+        //當Search Dialog消失的時候,會觸發OnDismiss Callback
+        searchManager.setOnDismissListener(new SearchManager.OnDismissListener() {
+            @Override
+            public void onDismiss() {
+                Toast.makeText(MainActivity.this, "Search Dialog OnDismiss", Toast.LENGTH_SHORT).show();
+            }
+        });
+
 
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -179,6 +213,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         } else if (id == R.id.action_player){
             openMusicPlayer();
+            return true;
+        } else if (id == R.id.action_refresh){
+//            horizontal_listPage.changeLayout(MainActivity.this);
+            mRecyclerViewFragment.changeLayout(MainActivity.this);
             return true;
         }
 
@@ -213,4 +251,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDrawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
 }

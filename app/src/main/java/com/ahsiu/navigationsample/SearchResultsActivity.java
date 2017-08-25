@@ -1,19 +1,19 @@
 package com.ahsiu.navigationsample;
 
-import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.SearchRecentSuggestions;
+import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
-/**
- * Created by jackie780919 on 2017/8/18.
- */
 
-public class SearchResultsActivity extends Activity {
+public class SearchResultsActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_other);
         handleIntent(getIntent());
     }
 
@@ -26,7 +26,10 @@ public class SearchResultsActivity extends Activity {
 
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
-            //use the query to search your data somehow
+            SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this, SuggestionProvider.AUTHORITY, SuggestionProvider.MODE);
+            suggestions.saveRecentQuery(query, null);
+
+            Toast.makeText(this, query, Toast.LENGTH_SHORT).show();
         }
     }
 }

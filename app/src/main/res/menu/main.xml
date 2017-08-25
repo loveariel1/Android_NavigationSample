@@ -18,5 +18,9 @@
         android:icon="@drawable/ic_queue_music_white_24dp"
         app:showAsAction="collapseActionView|ifRoom"/>
 
+    <item android:id="@+id/action_refresh"
+        android:title="refresh"
+        android:icon="@drawable/ic_refresh_white_24dp"
+        app:showAsAction="collapseActionView|ifRoom"/>
 
 </menu>

@@ -1,9 +1,13 @@
 package com.ahsiu.navigationsample.recyclerview;
 
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,11 +15,11 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.GridLayout;
 import android.widget.Toast;
 
 import com.ahsiu.navigationsample.CategoryActivity;
-import com.ahsiu.navigationsample.PageView;
 import com.ahsiu.navigationsample.R;
 
 import java.util.ArrayList;
@@ -26,9 +30,9 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class Horizontal_ListPage extends PageView {
+public class RecyclerViewFragment extends Fragment{
 
-    @BindView (R.id.horizontal_refreshlayout) SwipeRefreshLayout mSwipeRefreshLayout;
+    @BindView(R.id.horizontal_refreshlayout) SwipeRefreshLayout mSwipeRefreshLayout;
     @BindView (R.id.horizontal_recyclerview) RecyclerView mRecyclerView;
 
     private final String TAG = this.getClass().getName();
@@ -44,12 +48,18 @@ public class Horizontal_ListPage extends PageView {
 
     private int type = 0;
 
-    public Horizontal_ListPage(final Context context) {
-        super(context);
-        View view = LayoutInflater.from(context).inflate(R.layout.listview_horizontal_page_content, null);
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.listview_horizontal_page_content, null);
         ButterKnife.bind(this, view);
-        addView(view);
-        init(context);
+        init(getActivity());
+        changeLayout(getActivity());
+        return view;
     }
 
     public void changeLayout(Context context){
@@ -98,7 +108,7 @@ public class Horizontal_ListPage extends PageView {
                 context.startActivity(intent);
                 ((Activity)context).overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
 
-        }
+            }
 
             @Override
             public void onItemLongClick(View view, int position) {
