@@ -1,13 +1,17 @@
 package com.ahsiu.navigationsample.epoxy;
 
+
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.RelativeLayout;
+import android.view.ViewGroup;
 
 import com.ahsiu.navigationsample.R;
 
@@ -17,21 +21,27 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class Vertical_Epoxy_ListPage extends RelativeLayout {
+public class EpoxyFragment extends Fragment{
 
-    @BindView (R.id.epoxy_recyclerView) RecyclerView mRecyclerView;
+    @BindView(R.id.epoxy_recyclerView) RecyclerView mRecyclerView;
     @BindView(R.id.epoxy_refreshlayout) SwipeRefreshLayout mSwipeRefreshLayout;
     private ListController controller;
 
-    public Vertical_Epoxy_ListPage(Context context) {
-        super(context);
-        View view = LayoutInflater.from(context).inflate(R.layout.epoxy_page_content, null);
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.epoxy_page_content, null);
         ButterKnife.bind(this, view);
-        addView(view);
-        setUpController(context);
-        setUpRecyclerView(context);
+        setUpController(getActivity());
+        setUpRecyclerView(getActivity());
         updateController();
         setSwipeRefreshLayout();
+        return view;
     }
 
     private void setUpRecyclerView(Context context) {

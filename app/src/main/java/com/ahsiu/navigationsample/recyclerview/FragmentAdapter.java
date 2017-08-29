@@ -4,24 +4,26 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
-import java.util.List;
+import com.ahsiu.navigationsample.model.ViewPagerInfo;
+
+import java.util.ArrayList;
 
 public class FragmentAdapter extends FragmentPagerAdapter{
 
-    List<Fragment> mFragmentList;
+    ArrayList<ViewPagerInfo> ViewPagerInfos;
 
-    public FragmentAdapter(FragmentManager fragmentManager, List<Fragment> list){
+    public FragmentAdapter(FragmentManager fragmentManager, ArrayList<ViewPagerInfo> list){
         super(fragmentManager);
-        this.mFragmentList = list;
+        this.ViewPagerInfos = list;
     }
 
     @Override
     public Fragment getItem(int position) {
-        return mFragmentList.get(position);
+        return ViewPagerInfos.get(position).getFragment();
     }
 
     @Override
     public int getCount() {
-        return mFragmentList.size();
+        return ViewPagerInfos.size();
     }
 }

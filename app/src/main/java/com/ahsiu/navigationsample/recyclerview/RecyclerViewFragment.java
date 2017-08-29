@@ -12,14 +12,13 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
 import android.widget.Toast;
 
-import com.ahsiu.navigationsample.CategoryActivity;
+import com.ahsiu.navigationsample.ui.CategoryActivity;
 import com.ahsiu.navigationsample.R;
 
 import java.util.ArrayList;
@@ -32,21 +31,23 @@ import butterknife.ButterKnife;
 
 public class RecyclerViewFragment extends Fragment{
 
-    @BindView(R.id.horizontal_refreshlayout) SwipeRefreshLayout mSwipeRefreshLayout;
-    @BindView (R.id.horizontal_recyclerview) RecyclerView mRecyclerView;
+    @BindView (R.id.refreshlayout) SwipeRefreshLayout mSwipeRefreshLayout;
+    @BindView (R.id.recyclerview) RecyclerView mRecyclerView;
 
     private final String TAG = this.getClass().getName();
 
     boolean isLoading;
     private List<Map<String, Object>> data = new ArrayList<>();
     private Horizontal_RecycleViewAdapter mHListAdapter;
+    private Vertical_RecyclerViewAdapter mVListAdapter;
     private Grid_RecycleViewAdapter mGridAdapter;
+
     private Handler handler = new Handler();
 
     LinearLayoutManager linearLayoutManager;
     GridLayoutManager gridLayoutManager;
 
-    private int type = 0;
+    private int type = 1;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,7 +56,7 @@ public class RecyclerViewFragment extends Fragment{
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.listview_horizontal_page_content, null);
+        View view = inflater.inflate(R.layout.listview_page_content, null);
         ButterKnife.bind(this, view);
         init(getActivity());
         changeLayout(getActivity());
@@ -63,19 +64,31 @@ public class RecyclerViewFragment extends Fragment{
     }
 
     public void changeLayout(Context context){
-        if(type == 0){
-            type = 1;
-        }else{
-            type = 0;
+        switch (type){
+            case 0:
+                type = 1;
+                break;
+            case 1:
+                type = 2;
+                break;
+            case 2:
+                type = 0;
+                break;
         }
         init(context);
     }
 
     private void init(Context context){
-        if(type == 0){
-            setHListAdapter(context);
-        }else{
-            setGridAdapter(context);
+        switch (type){
+            case 0:
+                setHListAdapter(context);
+                break;
+            case 1:
+                setVListAdapter(context);
+                break;
+            case 2:
+                setGridAdapter(context);
+                break;
         }
         setSwipeRefreshLayout();
         setRecyclerView(context);
@@ -85,6 +98,25 @@ public class RecyclerViewFragment extends Fragment{
     private void setHListAdapter(final Context context){
         mHListAdapter = new Horizontal_RecycleViewAdapter(context, data);
         mHListAdapter.setOnItemClickListener(new Horizontal_RecycleViewAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                Toast.makeText(context, "onItemClick", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent();
+                intent.setClass(context, CategoryActivity.class);
+                context.startActivity(intent);
+                ((Activity)context).overridePendingTransition(R.anim.activity_in, R.anim.activity_out);
+            }
+
+            @Override
+            public void onItemLongClick(View view, int position) {
+                Toast.makeText(context, "onItemLongClick", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setVListAdapter(final Context context){
+        mVListAdapter = new Vertical_RecyclerViewAdapter(context, data);
+        mVListAdapter.setOnItemClickListener(new Vertical_RecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
                 Toast.makeText(context, "onItemClick", Toast.LENGTH_SHORT).show();
@@ -141,71 +173,96 @@ public class RecyclerViewFragment extends Fragment{
     }
 
     private void setRecyclerView(Context context){
-        if(type == 0){
-            linearLayoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
-            mRecyclerView.setLayoutManager(linearLayoutManager);
-            mRecyclerView.setAdapter(mHListAdapter);
-        }else{
-            gridLayoutManager = new GridLayoutManager(context, 3, GridLayout.HORIZONTAL, false);
-            mRecyclerView.setLayoutManager(gridLayoutManager);
-            mRecyclerView.setAdapter(mGridAdapter);
+        switch (type){
+            case 0:
+                linearLayoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
+                mRecyclerView.setLayoutManager(linearLayoutManager);
+                mRecyclerView.setAdapter(mHListAdapter);
+                break;
+            case 1:
+                linearLayoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
+                mRecyclerView.setLayoutManager(linearLayoutManager);
+                mRecyclerView.setAdapter(mVListAdapter);
+                break;
+            case 2:
+                gridLayoutManager = new GridLayoutManager(context, 3, GridLayout.HORIZONTAL, false);
+                mRecyclerView.setLayoutManager(gridLayoutManager);
+                mRecyclerView.setAdapter(mGridAdapter);
+                break;
         }
 
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-                Log.i(TAG, "newState:" + newState);
             }
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                Log.i(TAG, "dx:" + dx + "  dy:" + dy);
 
-                if(type == 0){
-                    int lastVisibleItemPosition = linearLayoutManager.findLastVisibleItemPosition();
-                    if (lastVisibleItemPosition + 1 == mHListAdapter.getItemCount()) {
+                switch (type){
+                    case 0:
+                        if (linearLayoutManager.findLastVisibleItemPosition() + 1 == mHListAdapter.getItemCount()) {
 
-                        boolean isRefreshing = mSwipeRefreshLayout.isRefreshing();
-                        if (isRefreshing) {
-                            mHListAdapter.notifyItemRemoved(mHListAdapter.getItemCount());
-                            return;
+                            boolean isRefreshing = mSwipeRefreshLayout.isRefreshing();
+                            if (isRefreshing) {
+                                mHListAdapter.notifyItemRemoved(mHListAdapter.getItemCount());
+                                return;
+                            }
+                            if (!isLoading) {
+                                isLoading = true;
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        getData();
+                                        isLoading = false;
+                                    }
+                                }, 1000);
+                            }
                         }
-                        if (!isLoading) {
-                            isLoading = true;
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    getData();
-                                    isLoading = false;
-                                }
-                            }, 1000);
-                        }
-                    }
-                }else{
-                    int lastVisibleItemPosition = gridLayoutManager.findLastVisibleItemPosition();
-                    if (lastVisibleItemPosition + 1 == mGridAdapter.getItemCount()) {
+                        break;
+                    case 1:
+                        if (linearLayoutManager.findLastVisibleItemPosition() + 1 == mVListAdapter.getItemCount()) {
 
-                        boolean isRefreshing = mSwipeRefreshLayout.isRefreshing();
-                        if (isRefreshing) {
-                            mGridAdapter.notifyItemRemoved(mGridAdapter.getItemCount());
-                            return;
+                            boolean isRefreshing = mSwipeRefreshLayout.isRefreshing();
+                            if (isRefreshing) {
+                                mVListAdapter.notifyItemRemoved(mVListAdapter.getItemCount());
+                                return;
+                            }
+                            if (!isLoading) {
+                                isLoading = true;
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        getData();
+                                        isLoading = false;
+                                    }
+                                }, 1000);
+                            }
                         }
-                        if (!isLoading) {
-                            isLoading = true;
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    getData();
-                                    isLoading = false;
-                                }
-                            }, 1000);
+                        break;
+                    case 2:
+                        if (gridLayoutManager.findLastVisibleItemPosition() + 1 == mGridAdapter.getItemCount()) {
+
+                            boolean isRefreshing = mSwipeRefreshLayout.isRefreshing();
+                            if (isRefreshing) {
+                                mGridAdapter.notifyItemRemoved(mGridAdapter.getItemCount());
+                                return;
+                            }
+                            if (!isLoading) {
+                                isLoading = true;
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        getData();
+                                        isLoading = false;
+                                    }
+                                }, 1000);
+                            }
                         }
-                    }
+                        break;
                 }
-
-
             }
         });
     }
@@ -225,16 +282,22 @@ public class RecyclerViewFragment extends Fragment{
             Map<String, Object> map = new HashMap<>();
             data.add(map);
         }
-        if(type == 0){
-            mHListAdapter.notifyDataSetChanged();
-            mSwipeRefreshLayout.setRefreshing(false);
-            mHListAdapter.notifyItemRemoved(mHListAdapter.getItemCount());
-        }else{
-            mGridAdapter.notifyDataSetChanged();
-            mSwipeRefreshLayout.setRefreshing(false);
-            mGridAdapter.notifyItemRemoved(mGridAdapter.getItemCount());
+        switch (type) {
+            case 0:
+                mHListAdapter.notifyDataSetChanged();
+                mSwipeRefreshLayout.setRefreshing(false);
+                mHListAdapter.notifyItemRemoved(mHListAdapter.getItemCount());
+                break;
+            case 1:
+                mVListAdapter.notifyDataSetChanged();
+                mSwipeRefreshLayout.setRefreshing(false);
+                mVListAdapter.notifyItemRemoved(mVListAdapter.getItemCount());
+                break;
+            case 2:
+                mGridAdapter.notifyDataSetChanged();
+                mSwipeRefreshLayout.setRefreshing(false);
+                mGridAdapter.notifyItemRemoved(mGridAdapter.getItemCount());
+                break;
         }
-
     }
-
 }

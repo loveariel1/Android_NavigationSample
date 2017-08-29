@@ -11,12 +11,6 @@ import com.ahsiu.navigationsample.R;
 
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
-/**
- * Created by jackie780919 on 2017/8/22.
- */
 
 public class Horizontal_RecycleViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
